@@ -9,18 +9,27 @@
     <title>Enid & Ian's Timer</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Arial', sans-serif; }
-        /* 修改 body，允許上下滑動，防止畫面被卡住 */
-        body { width: 100vw; min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; overflow-y: auto; background-color: #fff; }
+        
+        /* 修改 body：確保任何裝置都能自然上下滑動，解決 LINE 瀏覽器卡住的問題 */
+        body { 
+            width: 100%; 
+            min-height: 100vh; 
+            display: block; 
+            overflow-x: hidden; 
+            overflow-y: auto; 
+            background-color: #fff; 
+        }
         
         /* 左右/上下互換按鈕區 */
         #top-bar { position: relative; width: 100%; text-align: center; padding: 10px 0; z-index: 10; background-color: #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         #swap-btn { padding: 8px 20px; font-size: 18px; border-radius: 20px; border: 2px solid #555; background: #fff; cursor: pointer; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         
-        /* 容器與分割 */
-        #container { display: flex; width: 100%; flex: 1; flex-direction: row; transition: all 0.5s ease; }
+        /* 容器與分割：確保能自適應螢幕大小 */
+        #container { display: flex; width: 100%; min-height: calc(100vh - 50px); flex-direction: row; transition: all 0.5s ease; flex-wrap: wrap; }
         #container.reverse { flex-direction: row-reverse; }
         
-        .timer-section { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; position: relative; }
+        /* 將區塊設定為 50% 寬度，避免橫屏時超出邊界 */
+        .timer-section { width: 50%; flex: 1 1 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px 15px; position: relative; }
         
         /* Enid (粉色 + 淡愛心圖案) */
         .pink-bg { 
@@ -73,11 +82,11 @@
         .message-text { font-size: 40px; font-weight: bold; color: #d32f2f; margin-bottom: 20px; }
         .close-msg-btn { padding: 10px 20px; font-size: 20px; background-color: #2196F3; color: white; border: none; border-radius: 10px; cursor: pointer; }
 
-        /* 手機直立時的專屬設計：改為上下排列 */
+        /* 手機直立時的專屬設計：改為上下排列，並允許容器伸展 */
         @media (max-width: 768px) {
-            #container { flex-direction: column; }
+            #container { flex-direction: column; height: auto; flex-wrap: nowrap; }
             #container.reverse { flex-direction: column-reverse; }
-            .timer-section { padding: 30px 15px; min-height: 50vh; }
+            .timer-section { width: 100%; flex: none; min-height: 65vh; }
             .time-display { font-size: 55px; }
         }
     </style>
@@ -101,10 +110,14 @@
 
             <div class="controls">
                 <select id="min1" class="time-select">
-                    <option value="0" selected>0</option><option value="5">5</option><option value="10">10</option>
-                    <option value="15">15</option><option value="20">20</option><option value="25">25</option>
-                    <option value="30">30</option><option value="35">35</option><option value="40">40</option>
-                    <option value="45">45</option><option value="50">50</option><option value="55">55</option><option value="60">60</option>
+                    <option value="0" selected>0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option>
+                    <option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option>
+                    <option value="8">8</option><option value="9">9</option><option value="10">10</option><option value="11">11</option>
+                    <option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option>
+                    <option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option>
+                    <option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option>
+                    <option value="24">24</option><option value="25">25</option><option value="26">26</option><option value="27">27</option>
+                    <option value="28">28</option><option value="29">29</option><option value="30">30</option>
                 </select><span class="time-label">Min</span>
                 
                 <select id="sec1" class="time-select">
@@ -127,7 +140,7 @@
                 <option value="3">3 Quick beeps</option>
                 <option value="4">4 High-low</option>
                 <option value="5">5 Star Wars</option>
-                <option value="6" selected>6 哆啦A夢道具音效</option>
+                <option value="6" selected>6 哆啦A夢 ㄤㄤㄤ</option>
             </select>
             
             <input type="text" id="msg1" class="bottom-input" placeholder="Custom message" value="Time's up, Enid!">
@@ -150,10 +163,14 @@
 
             <div class="controls">
                 <select id="min2" class="time-select">
-                    <option value="0" selected>0</option><option value="5">5</option><option value="10">10</option>
-                    <option value="15">15</option><option value="20">20</option><option value="25">25</option>
-                    <option value="30">30</option><option value="35">35</option><option value="40">40</option>
-                    <option value="45">45</option><option value="50">50</option><option value="55">55</option><option value="60">60</option>
+                    <option value="0" selected>0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option>
+                    <option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option>
+                    <option value="8">8</option><option value="9">9</option><option value="10">10</option><option value="11">11</option>
+                    <option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option>
+                    <option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option>
+                    <option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option>
+                    <option value="24">24</option><option value="25">25</option><option value="26">26</option><option value="27">27</option>
+                    <option value="28">28</option><option value="29">29</option><option value="30">30</option>
                 </select><span class="time-label">Min</span>
                 
                 <select id="sec2" class="time-select">
@@ -176,7 +193,7 @@
                 <option value="3">3 Quick beeps</option>
                 <option value="4">4 High-low</option>
                 <option value="5">5 Star Wars</option>
-                <option value="6" selected>6 哆啦A夢道具音效</option>
+                <option value="6" selected>6 哆啦A夢 ㄤㄤㄤ</option>
             </select>
             
             <input type="text" id="msg2" class="bottom-input" placeholder="Custom message" value="Time's up, Ian!">
@@ -205,7 +222,32 @@
                 case '3': osc.type = 'square'; for(let i=0; i<8; i++) { osc.frequency.setValueAtTime(1000, now + i*0.2); gainNode.gain.setValueAtTime(0.5, now + i*0.2); gainNode.gain.setValueAtTime(0, now + i*0.2 + 0.1); } osc.start(now); osc.stop(now + 1.6); break;
                 case '4': osc.type = 'triangle'; osc.frequency.setValueAtTime(400, now); osc.frequency.linearRampToValueAtTime(800, now + 0.3); osc.frequency.linearRampToValueAtTime(400, now + 0.6); gainNode.gain.setValueAtTime(0.8, now); gainNode.gain.linearRampToValueAtTime(0, now + 0.6); osc.start(now); osc.stop(now + 0.6); break;
                 case '5': osc.type = 'square'; const swNotes = [{f: 392.00, d: 0.3}, {f: 392.00, d: 0.3}, {f: 392.00, d: 0.3}, {f: 523.25, d: 0.8}, {f: 783.99, d: 0.8}, {f: 698.46, d: 0.2}, {f: 659.25, d: 0.2}, {f: 587.33, d: 0.2}, {f: 1046.50, d: 0.8}, {f: 783.99, d: 0.6}]; let t2 = now; swNotes.forEach(note => { osc.frequency.setValueAtTime(note.f, t2); gainNode.gain.setValueAtTime(0.5, t2); gainNode.gain.linearRampToValueAtTime(0, t2 + note.d - 0.05); t2 += note.d; }); osc.start(now); osc.stop(t2); break;
-                case '6': osc.type = 'triangle'; const gadgetNotes = [{f: 392.00, d: 0.15}, {f: 523.25, d: 0.15}, {f: 659.25, d: 0.15}, {f: 783.99, d: 0.80}]; let t = now; gadgetNotes.forEach(note => { osc.frequency.setValueAtTime(note.f, t); gainNode.gain.setValueAtTime(0.8, t); gainNode.gain.linearRampToValueAtTime(0.01, t + note.d - 0.02); t += note.d; }); osc.start(now); osc.stop(t); break;
+                case '6': 
+                    // 全新改寫的哆啦A夢「ㄤㄤㄤ」音效
+                    osc.type = 'triangle'; 
+                    const doraemonSong = [
+                        {f: 698.46, d: 0.2, rest: 0.1}, // ㄤ
+                        {f: 698.46, d: 0.2, rest: 0.1}, // ㄤ
+                        {f: 698.46, d: 0.4, rest: 0.1}, // ㄤ~
+                        {f: 659.25, d: 0.2, rest: 0},   // 抽
+                        {f: 587.33, d: 0.2, rest: 0},   // 替
+                        {f: 523.25, d: 0.2, rest: 0},   // 摸
+                        {f: 523.25, d: 0.4, rest: 0.1}, // 大~
+                        {f: 587.33, d: 0.2, rest: 0},   // 斯
+                        {f: 659.25, d: 0.2, rest: 0},   // ㄎㄧ
+                        {f: 698.46, d: 0.6, rest: 0}    // 哆啦A夢~
+                    ];
+                    let t = now;
+                    doraemonSong.forEach(note => {
+                        osc.frequency.setValueAtTime(note.f, t);
+                        gainNode.gain.setValueAtTime(0.6, t);
+                        // 讓每一個音符的尾音自然收乾淨
+                        gainNode.gain.linearRampToValueAtTime(0.01, t + note.d - 0.02); 
+                        t += note.d + note.rest;
+                    });
+                    osc.start(now);
+                    osc.stop(t);
+                    break;
             }
         }
 
