@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>Enid & Ian's Timer</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Arial', sans-serif; }
+        /* 修改 body，允許上下滑動，防止畫面被卡住 */
+        body { width: 100vw; min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; overflow-y: auto; background-color: #fff; }
+        
+        /* 左右/上下互換按鈕區 */
+        #top-bar { position: relative; width: 100%; text-align: center; padding: 10px 0; z-index: 10; background-color: #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        #swap-btn { padding: 8px 20px; font-size: 18px; border-radius: 20px; border: 2px solid #555; background: #fff; cursor: pointer; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        
+        /* 容器與分割 */
+        #container { display: flex; width: 100%; flex: 1; flex-direction: row; transition: all 0.5s ease; }
+        #container.reverse { flex-direction: row-reverse; }
+        
+        .timer-section { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; position: relative; }
+        
+        /* Enid (粉色 + 淡愛心圖案) */
+        .pink-bg { 
+            background-color: #ffe4e1;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 24 24' fill='none' stroke='rgba(233,30,99,0.15)' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l8.84-8.84 1.06-1.06a5.5 5.5 0 0 0 0-7.78z'%3E%3C/path%3E%3C/svg%3E");
+            background-repeat: repeat;
+            background-size: 64px 64px; 
+        }
+        
+        /* Ian (藍色 + 淡戰鬥陀螺圖案) */
+        .blue-bg { 
+            background-color: #e0f7fa;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48' fill='none' stroke='rgba(13,71,161,0.1)' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M24 6 C30 6, 36 10, 39 16 C40 18, 42 20, 42 24 C42 30, 36 36, 30 39 C28 40, 26 42, 24 42 C18 42, 12 38, 9 32 C8 30, 6 28, 6 24 C6 18, 10 12, 16 9 C18 8, 20 6, 24 6 Z M24 20 A4 4 0 1 0 24 28 A4 4 0 1 0 24 20 M24 6 L24 20 M24 28 L24 42 M16 9 L24 20 M24 28 L32 39 M39 16 L24 20 M24 28 L9 32'/%3E%3C/svg%3E");
+            background-repeat: repeat;
+            background-size: 64px 64px;
+        }
+        
+        /* 標題與文字 */
+        h1 { font-size: 32px; margin-bottom: 10px; color: #333; z-index: 2; text-shadow: 1px 1px 2px rgba(255,255,255,0.8); }
+        .time-display { font-size: 60px; font-weight: bold; margin: 10px 0; font-variant-numeric: tabular-nums; color: #222; z-index: 2; text-shadow: 1px 1px 2px rgba(255,255,255,0.8); }
+        
+        /* 快捷按鈕 (圓形) */
+        .quick-btns { display: flex; gap: 15px; margin-bottom: 15px; z-index: 2; }
+        .quick-btn { 
+            width: 60px; height: 60px; border-radius: 50%; border: none; 
+            color: white; font-size: 15px; font-weight: bold; cursor: pointer; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2); 
+            display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.1;
+        }
+        .pink-bg .quick-btn { background-color: #f06292; } 
+        .blue-bg .quick-btn { background-color: #29b6f6; } 
+
+        /* 區塊排列 */
+        .controls { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; justify-content: center; align-items: center; z-index: 2; }
+        
+        /* 針對下拉選單 (滾輪) 的美化 */
+        .time-select { width: 70px; font-size: 20px; text-align: center; padding: 5px; border-radius: 8px; border: 1px solid #ccc; background-color: white; appearance: auto; }
+        .time-label { font-size: 20px; font-weight: bold; color: #555; text-shadow: 1px 1px 2px rgba(255,255,255,0.8); margin-right: 5px; }
+
+        select.bottom-input, input[type="text"].bottom-input { font-size: 16px; padding: 8px; border-radius: 8px; border: 1px solid #ccc; margin-bottom: 10px; width: 85%; max-width: 220px; z-index: 2; }
+        
+        button.action-btn { padding: 10px 20px; font-size: 18px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; color: white; box-shadow: 0 4px 6px rgba(0,0,0,0.1); z-index: 2; }
+        .start-btn { background-color: #4CAF50; }
+        .pause-btn { background-color: #FF9800; }
+        .reset-btn { background-color: #F44336; }
+        
+        /* 時間到的提示訊息 */
+        .message-overlay { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.95); flex-direction: column; align-items: center; justify-content: center; z-index: 5; text-align: center; padding: 20px; }
+        .message-overlay.show { display: flex; }
+        .message-text { font-size: 40px; font-weight: bold; color: #d32f2f; margin-bottom: 20px; }
+        .close-msg-btn { padding: 10px 20px; font-size: 20px; background-color: #2196F3; color: white; border: none; border-radius: 10px; cursor: pointer; }
+
+        /* 手機直立時的專屬設計：改為上下排列 */
+        @media (max-width: 768px) {
+            #container { flex-direction: column; }
+            #container.reverse { flex-direction: column-reverse; }
+            .timer-section { padding: 30px 15px; min-height: 50vh; }
+            .time-display { font-size: 55px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="top-bar">
+        <button id="swap-btn" onclick="swapSides()">↔️ Swap Sides</button>
+    </div>
+
+    <div id="container">
+        <div class="timer-section pink-bg" id="timer1">
+            <h1>Enid's Timer</h1>
+            <div class="time-display" id="display1">00:00</div>
+            
+            <div class="quick-btns">
+                <button class="quick-btn" onclick="quickSet(1, 30)"><span>30s</span></button>
+                <button class="quick-btn" onclick="quickSet(1, 60)"><span>1min</span></button>
+                <button class="quick-btn" onclick="quickSet(1, 90)"><span>1min</span><span>30s</span></button>
+            </div>
+
+            <div class="controls">
+                <select id="min1" class="time-select">
+                    <option value="0" selected>0</option><option value="5">5</option><option value="10">10</option>
+                    <option value="15">15</option><option value="20">20</option><option value="25">25</option>
+                    <option value="30">30</option><option value="35">35</option><option value="40">40</option>
+                    <option value="45">45</option><option value="50">50</option><option value="55">55</option><option value="60">60</option>
+                </select><span class="time-label">Min</span>
+                
+                <select id="sec1" class="time-select">
+                    <option value="0" selected>0</option><option value="5">5</option><option value="10">10</option>
+                    <option value="15">15</option><option value="20">20</option><option value="25">25</option>
+                    <option value="30">30</option><option value="35">35</option><option value="40">40</option>
+                    <option value="45">45</option><option value="50">50</option><option value="55">55</option><option value="60">60</option>
+                </select><span class="time-label">Sec</span>
+            </div>
+            
+            <div class="controls">
+                <button class="action-btn start-btn" onclick="startTimer(1)">Start</button>
+                <button class="action-btn pause-btn" onclick="pauseTimer(1)">Pause</button>
+                <button class="action-btn reset-btn" onclick="resetTimer(1)">Reset</button>
+            </div>
+
+            <select id="sound1" class="bottom-input">
+                <option value="1">1 Single tone</option>
+                <option value="2">2 Doorbell</option>
+                <option value="3">3 Quick beeps</option>
+                <option value="4">4 High-low</option>
+                <option value="5">5 Star Wars</option>
+                <option value="6" selected>6 哆啦A夢道具音效</option>
+            </select>
+            
+            <input type="text" id="msg1" class="bottom-input" placeholder="Custom message" value="Time's up, Enid!">
+
+            <div class="message-overlay" id="overlay1">
+                <div class="message-text" id="final-msg1"></div>
+                <button class="close-msg-btn" onclick="closeMessage(1)">OK</button>
+            </div>
+        </div>
+
+        <div class="timer-section blue-bg" id="timer2">
+            <h1>Ian's Timer</h1>
+            <div class="time-display" id="display2">00:00</div>
+            
+            <div class="quick-btns">
+                <button class="quick-btn" onclick="quickSet(2, 30)"><span>30s</span></button>
+                <button class="quick-btn" onclick="quickSet(2, 60)"><span>1min</span></button>
+                <button class="quick-btn" onclick="quickSet(2, 90)"><span>1min</span><span>30s</span></button>
+            </div>
+
+            <div class="controls">
+                <select id="min2" class="time-select">
+                    <option value="0" selected>0</option><option value="5">5</option><option value="10">10</option>
+                    <option value="15">15</option><option value="20">20</option><option value="25">25</option>
+                    <option value="30">30</option><option value="35">35</option><option value="40">40</option>
+                    <option value="45">45</option><option value="50">50</option><option value="55">55</option><option value="60">60</option>
+                </select><span class="time-label">Min</span>
+                
+                <select id="sec2" class="time-select">
+                    <option value="0" selected>0</option><option value="5">5</option><option value="10">10</option>
+                    <option value="15">15</option><option value="20">20</option><option value="25">25</option>
+                    <option value="30">30</option><option value="35">35</option><option value="40">40</option>
+                    <option value="45">45</option><option value="50">50</option><option value="55">55</option><option value="60">60</option>
+                </select><span class="time-label">Sec</span>
+            </div>
+            
+            <div class="controls">
+                <button class="action-btn start-btn" onclick="startTimer(2)">Start</button>
+                <button class="action-btn pause-btn" onclick="pauseTimer(2)">Pause</button>
+                <button class="action-btn reset-btn" onclick="resetTimer(2)">Reset</button>
+            </div>
+
+            <select id="sound2" class="bottom-input">
+                <option value="1">1 Single tone</option>
+                <option value="2">2 Doorbell</option>
+                <option value="3">3 Quick beeps</option>
+                <option value="4">4 High-low</option>
+                <option value="5">5 Star Wars</option>
+                <option value="6" selected>6 哆啦A夢道具音效</option>
+            </select>
+            
+            <input type="text" id="msg2" class="bottom-input" placeholder="Custom message" value="Time's up, Ian!">
+
+            <div class="message-overlay" id="overlay2">
+                <div class="message-text" id="final-msg2"></div>
+                <button class="close-msg-btn" onclick="closeMessage(2)">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            const now = audioCtx.currentTime;
+            switch(type) {
+                case '1': osc.type = 'sine'; osc.frequency.setValueAtTime(800, now); gainNode.gain.setValueAtTime(1, now); gainNode.gain.exponentialRampToValueAtTime(0.01, now + 1.0); osc.start(now); osc.stop(now + 1.0); break;
+                case '2': osc.type = 'sine'; osc.frequency.setValueAtTime(659.25, now); osc.frequency.setValueAtTime(523.25, now + 0.8); gainNode.gain.setValueAtTime(0.8, now); gainNode.gain.linearRampToValueAtTime(0, now + 1.6); osc.start(now); osc.stop(now + 1.6); break;
+                case '3': osc.type = 'square'; for(let i=0; i<8; i++) { osc.frequency.setValueAtTime(1000, now + i*0.2); gainNode.gain.setValueAtTime(0.5, now + i*0.2); gainNode.gain.setValueAtTime(0, now + i*0.2 + 0.1); } osc.start(now); osc.stop(now + 1.6); break;
+                case '4': osc.type = 'triangle'; osc.frequency.setValueAtTime(400, now); osc.frequency.linearRampToValueAtTime(800, now + 0.3); osc.frequency.linearRampToValueAtTime(400, now + 0.6); gainNode.gain.setValueAtTime(0.8, now); gainNode.gain.linearRampToValueAtTime(0, now + 0.6); osc.start(now); osc.stop(now + 0.6); break;
+                case '5': osc.type = 'square'; const swNotes = [{f: 392.00, d: 0.3}, {f: 392.00, d: 0.3}, {f: 392.00, d: 0.3}, {f: 523.25, d: 0.8}, {f: 783.99, d: 0.8}, {f: 698.46, d: 0.2}, {f: 659.25, d: 0.2}, {f: 587.33, d: 0.2}, {f: 1046.50, d: 0.8}, {f: 783.99, d: 0.6}]; let t2 = now; swNotes.forEach(note => { osc.frequency.setValueAtTime(note.f, t2); gainNode.gain.setValueAtTime(0.5, t2); gainNode.gain.linearRampToValueAtTime(0, t2 + note.d - 0.05); t2 += note.d; }); osc.start(now); osc.stop(t2); break;
+                case '6': osc.type = 'triangle'; const gadgetNotes = [{f: 392.00, d: 0.15}, {f: 523.25, d: 0.15}, {f: 659.25, d: 0.15}, {f: 783.99, d: 0.80}]; let t = now; gadgetNotes.forEach(note => { osc.frequency.setValueAtTime(note.f, t); gainNode.gain.setValueAtTime(0.8, t); gainNode.gain.linearRampToValueAtTime(0.01, t + note.d - 0.02); t += note.d; }); osc.start(now); osc.stop(t); break;
+            }
+        }
+
+        let timers = { 1: { time: 0, id: null, isRunning: false }, 2: { time: 0, id: null, isRunning: false } };
+
+        function updateDisplay(num) {
+            let m = Math.floor(timers[num].time / 60).toString().padStart(2, '0');
+            let s = (timers[num].time % 60).toString().padStart(2, '0');
+            document.getElementById(`display${num}`).innerText = `${m}:${s}`;
+        }
+
+        function quickSet(num, secs) {
+            if (timers[num].isRunning) { pauseTimer(num); }
+            timers[num].time = secs;
+            document.getElementById(`min${num}`).value = '0';
+            document.getElementById(`sec${num}`).value = '0';
+            updateDisplay(num);
+        }
+
+        function startTimer(num) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            if (timers[num].isRunning) return;
+            
+            let m = parseInt(document.getElementById(`min${num}`).value) || 0;
+            let s = parseInt(document.getElementById(`sec${num}`).value) || 0;
+            
+            if (m > 0 || s > 0) {
+                timers[num].time = m * 60 + s;
+                document.getElementById(`min${num}`).value = '0';
+                document.getElementById(`sec${num}`).value = '0';
+            }
+            
+            if (timers[num].time <= 0) return; 
+            
+            timers[num].isRunning = true;
+            updateDisplay(num);
+
+            timers[num].id = setInterval(() => {
+                timers[num].time--;
+                updateDisplay(num);
+
+                if (timers[num].time <= 0) {
+                    clearInterval(timers[num].id);
+                    timers[num].isRunning = false;
+                    timeIsUp(num);
+                }
+            }, 1000);
+        }
+
+        function pauseTimer(num) { clearInterval(timers[num].id); timers[num].isRunning = false; }
+        function resetTimer(num) { pauseTimer(num); timers[num].time = 0; document.getElementById(`min${num}`).value = '0'; document.getElementById(`sec${num}`).value = '0'; updateDisplay(num); }
+        function timeIsUp(num) { let soundType = document.getElementById(`sound${num}`).value; playSound(soundType); let msg = document.getElementById(`msg${num}`).value || "Time's up!"; document.getElementById(`final-msg${num}`).innerText = msg; document.getElementById(`overlay${num}`).classList.add('show'); }
+        function closeMessage(num) { document.getElementById(`overlay${num}`).classList.remove('show'); resetTimer(num); }
+        function swapSides() { document.getElementById('container').classList.toggle('reverse'); }
+    </script>
+
+</body>
+</html>
